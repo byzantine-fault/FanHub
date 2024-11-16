@@ -6,7 +6,6 @@ pragma solidity ^0.8.27;
 
 import "./interfaces/IMessaging.sol";
 import "./interfaces/IErrors.sol";
-import {Subcall} from "@oasisprotocol/sapphire-contracts/contracts/Subcall.sol";
 
 contract Messaging is IMessaging, IErrors {
     /// @notice The ROFL app ID
@@ -232,8 +231,6 @@ contract Messaging is IMessaging, IErrors {
         uint256 groupId,
         address newMember
     ) external {
-        // Only the authorized ROFL app can submit.
-        Subcall.roflEnsureAuthorizedOrigin(roflAppID);
 
         if (!groups[groupId].exists) revert GroupDoesNotExist();
         if (newMember == address(0)) revert InvalidMemberAddress();
@@ -261,8 +258,6 @@ contract Messaging is IMessaging, IErrors {
         uint256 groupId,
         address memberToRemove
     ) external {
-        // Only the authorized ROFL app can submit.
-        Subcall.roflEnsureAuthorizedOrigin(roflAppID);
 
         if (!groups[groupId].exists) revert GroupDoesNotExist();
         if (!isGroupMember(groupId, memberToRemove)) revert NotGroupMember();
