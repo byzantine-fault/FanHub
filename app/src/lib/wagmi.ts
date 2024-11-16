@@ -1,4 +1,4 @@
-import { createConfig } from "wagmi"
+import { createConfig } from "@privy-io/wagmi"
 import { sapphire, sapphireTestnet } from "wagmi/chains"
 import {
   injectedWithSapphire,
