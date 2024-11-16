@@ -1,4 +1,4 @@
-import { LogOut, Origami } from "lucide-react"
+import { LogOut, MessageCircleHeartIcon } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -12,21 +12,22 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { NAV_ITEMS } from "@/lib/constants"
-import { useAccount, useDisconnect } from "wagmi"
+import { useAccount } from "wagmi"
 import { useSetAtom, useAtomValue } from "jotai"
 import { FC } from "react"
 import { selectionAtom } from "@/lib/store"
+import { useLogout } from "@privy-io/react-auth"
 
 const IconSidebar: FC = () => {
   const { setOpen } = useSidebar()
   const { address } = useAccount()
-  const { disconnect } = useDisconnect()
+  const { logout } = useLogout()
   const setSelection = useSetAtom(selectionAtom)
   const selection = useAtomValue(selectionAtom)
 
   const handleDisconnect = () => {
     if (address) localStorage.removeItem(`lastSignIn_${address}`)
-    disconnect()
+    logout()
   }
 
   return (
@@ -39,7 +40,7 @@ const IconSidebar: FC = () => {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" className="md:h-8 md:p-0">
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <Origami className="size-4" />
+                <MessageCircleHeartIcon className="size-4" />
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -57,11 +58,15 @@ const IconSidebar: FC = () => {
                       hidden: false,
                     }}
                     onClick={() => {
-                      const view = item.title === "Direct Messages" ? "dm" : "group"
+                      const view =
+                        item.title === "Direct Messages" ? "dm" : "group"
                       setSelection({ view, id: null })
                       setOpen(true)
                     }}
-                    isActive={selection.view === (item.title === "Direct Messages" ? "dm" : "group")}
+                    isActive={
+                      selection.view ===
+                      (item.title === "Direct Messages" ? "dm" : "group")
+                    }
                     className="px-2.5 md:px-2"
                   >
                     <item.icon className="size-4" />
