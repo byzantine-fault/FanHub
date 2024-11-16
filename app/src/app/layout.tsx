@@ -1,17 +1,17 @@
-import type { Metadata } from "next";
-import "@/styles/globals.css";
-import Providers from "./providers";
+import type { Metadata } from "next"
+import "@/styles/globals.css"
+import Providers from "./providers"
 import { Toaster } from "@/components/ui/sonner"
 
 export const metadata: Metadata = {
-  title: "CraneChat",
+  title: "FanHub",
   description: "E2E encrypted chat with token gated group chats.",
-};
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -20,5 +20,5 @@ export default function RootLayout({
         <Toaster />
       </body>
     </html>
-  );
+  )
 }
