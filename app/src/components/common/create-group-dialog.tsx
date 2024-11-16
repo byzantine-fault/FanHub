@@ -35,6 +35,7 @@ interface Props {
 
 const CHAIN_OPTIONS = [
   { id: "1", name: "Ethereum Mainnet" },
+  // { id: "23293", name: "Sapphire Localnet" },
 ] as const
 
 const formSchema = z.object({
@@ -66,7 +67,7 @@ const CreateGroupDialog: FC<Props> = ({ open, onOpenChange }) => {
       name: values.name,
       chainId: parseInt(values.chainId),
       tokenAddress: values.tokenAddress as `0x${string}`,
-      requiredAmount: values.requiredAmount
+      requiredAmount: values.requiredAmount,
     })
 
     onOpenChange(false)
@@ -101,7 +102,10 @@ const CreateGroupDialog: FC<Props> = ({ open, onOpenChange }) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Chain</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select chain" />
@@ -141,14 +145,22 @@ const CreateGroupDialog: FC<Props> = ({ open, onOpenChange }) => {
                 <FormItem>
                   <FormLabel>Required Amount</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="Enter required token amount" {...field} />
+                    <Input
+                      type="number"
+                      placeholder="Enter required token amount"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <Button type="submit" disabled={!form.formState.isValid || isPending} className="w-full">
+            <Button
+              type="submit"
+              disabled={!form.formState.isValid || isPending}
+              className="w-full"
+            >
               Create Group
             </Button>
           </form>
