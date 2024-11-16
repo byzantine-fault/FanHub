@@ -1,10 +1,10 @@
-import { useMemo, FC } from 'react'
+import { useMemo, FC } from "react"
 import { SidebarGroupContent } from "@/components/ui/sidebar"
-import Jazzicon from 'react-jazzicon'
+import Jazzicon from "react-jazzicon"
 import { cn } from "@/lib/utils"
 import { useGetAllGroups } from "@/hooks/use-get-all-groups"
-import { selectionAtom } from '@/lib/store'
-import { useAtomValue, useSetAtom } from 'jotai'
+import { selectionAtom } from "@/lib/store"
+import { useAtomValue, useSetAtom } from "jotai"
 
 interface GroupsProps {
   searchTerm: string
@@ -12,7 +12,6 @@ interface GroupsProps {
 
 const Groups: FC<GroupsProps> = ({ searchTerm }) => {
   const { data: groups = [] } = useGetAllGroups()
-
   const setSelection = useSetAtom(selectionAtom)
   const selection = useAtomValue(selectionAtom)
 
@@ -27,19 +26,25 @@ const Groups: FC<GroupsProps> = ({ searchTerm }) => {
       {filteredGroups.length > 0 ? (
         filteredGroups.map((group) => (
           <div
-            onClick={() => setSelection({ view: 'group', id: group.groupId.toString() })}
+            onClick={() =>
+              setSelection({ view: "group", id: group.groupId.toString() })
+            }
             key={group.groupId}
             className={cn(
               "flex items-center gap-3 rounded-lg p-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer",
-              selection.view === 'group' && selection.id === group.groupId.toString() && "bg-sidebar-accent text-sidebar-accent-foreground"
+              selection.view === "group" &&
+                selection.id === group.groupId.toString() &&
+                "bg-sidebar-accent text-sidebar-accent-foreground"
             )}
           >
             <Jazzicon diameter={32} seed={parseInt(group.groupId.toString())} />
             <div className="grid">
               <span className="font-medium">{group.name}</span>
-              <span className="text-xs text-muted-foreground">
-                {group.members.length} members
-              </span>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-muted-foreground">
+                  {group.members.length} members
+                </span>
+              </div>
             </div>
           </div>
         ))
