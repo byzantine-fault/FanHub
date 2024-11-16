@@ -6,10 +6,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
-import {
-  SidebarInset,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
+import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -17,22 +14,25 @@ import { FC, useRef, useEffect, useState } from "react"
 import { useGetGroupMessages } from "@/hooks/use-get-group-messages"
 import { useSendGroupMessage } from "@/hooks/use-send-group-message"
 import { useAccount } from "wagmi"
-import ChatMessage from "../common/chat-message"
 import { useCheckSignIn } from "@/hooks/auth/use-check-signin"
 import { useCheckGroupAccess } from "@/hooks/use-check-group-access"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-} from "@/components/ui/form"
+import { Form, FormControl, FormField, FormItem } from "@/components/ui/form"
 import WarningIcon from "@/icons/warning-icon"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../ui/sheet"
+import GroupMessage from "../common/group-message"
 
 interface PageProps {
   id: string
@@ -47,7 +47,22 @@ type MessageFormValues = z.infer<typeof messageFormSchema>
 const Group: FC<PageProps> = ({ id }) => {
   const { address } = useAccount()
   const { auth } = useCheckSignIn()
-  const { isMember, isPending, isLoading, requestAccess } = useCheckGroupAccess({
+  const {
+    isMember,
+    isPending,
+    isLoading,
+    requestAccess,
+    pendingMembers,
+    acceptMember,
+    removeMember,
+    isOwner,
+    members,
+    refetchMembership,
+    refetchPending,
+    refetchPendingMembers,
+    refetchOwner,
+    refetchMembers,
+  } = useCheckGroupAccess({
     auth,
     groupId: id,
     address: address as `0x${string}`,
@@ -77,7 +92,9 @@ const Group: FC<PageProps> = ({ id }) => {
 
   useEffect(() => {
     if (messages?.length) {
-      const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]')
+      const viewport = scrollAreaRef.current?.querySelector(
+        "[data-radix-scroll-area-viewport]"
+      )
       if (viewport) {
         if (isFirstRender.current) {
           viewport.scrollTop = viewport.scrollHeight
@@ -85,7 +102,7 @@ const Group: FC<PageProps> = ({ id }) => {
         } else {
           viewport.scrollTo({
             top: viewport.scrollHeight,
-            behavior: 'instant'
+            behavior: "instant",
           })
         }
       }
@@ -114,8 +131,7 @@ const Group: FC<PageProps> = ({ id }) => {
               <p className="text-center text-muted-foreground">
                 {isPending
                   ? "Your access request is pending approval... Check back later"
-                  : "You need to be a member of this group to view messages"
-                }
+                  : "You need to be a member of this group to view messages"}
               </p>
               {!isPending && (
                 <Button
@@ -149,37 +165,131 @@ const Group: FC<PageProps> = ({ id }) => {
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
+        {(pendingMembers?.length || isOwner) && (
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="ml-auto">
+                Group Setting
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Group Setting</SheetTitle>
+              </SheetHeader>
+
+              <Tabs defaultValue="members" className="mt-6">
+                <TabsList>
+                  <TabsTrigger value="members">
+                    Members ({members?.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="pending">
+                    Pending ({pendingMembers?.length})
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="members" className="mt-4 space-y-4">
+                  {members?.map((member) => (
+                    <div
+                      key={member}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarImage
+                            src={`https://avatar.vercel.sh/${member}.png`}
+                          />
+                          <AvatarFallback>
+                            {member.substring(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <p className="font-medium">
+                          {" "}
+                          {member.slice(0, 6)}...{member.slice(-4)}
+                        </p>
+                      </div>
+                      <Button
+                        variant="destructive"
+                        onClick={async () => {
+                          await removeMember.mutateAsync(member)
+                          await refetchMembers()
+                        }}
+                        disabled={removeMember.isPending}
+                      >
+                        {removeMember.isPending ? "Removing..." : "Remove"}
+                      </Button>
+                    </div>
+                  ))}
+                </TabsContent>
+
+                <TabsContent value="pending" className="mt-4 space-y-4">
+                  {pendingMembers?.map((member) => (
+                    <div
+                      key={member}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarImage
+                            src={`https://avatar.vercel.sh/${member}.png`}
+                          />
+                          <AvatarFallback>
+                            {member.substring(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <p className="font-medium">
+                          {member.slice(0, 6)}...{member.slice(-4)}
+                        </p>
+                      </div>
+                      <Button
+                        onClick={async () => {
+                          await acceptMember.mutateAsync(member)
+                          await refetchPendingMembers()
+                        }}
+                        disabled={acceptMember.isPending}
+                      >
+                        {acceptMember.isPending ? "Accepting..." : "Accept"}
+                      </Button>
+                    </div>
+                  ))}
+                </TabsContent>
+              </Tabs>
+            </SheetContent>
+          </Sheet>
+        )}
       </header>
       <div className="flex flex-1 flex-col min-h-0">
-        <ScrollArea
-          className="flex-1 w-full"
-          ref={scrollAreaRef}
-        >
+        <ScrollArea className="flex-1 w-full" ref={scrollAreaRef}>
           <div className="flex flex-col gap-4 p-4 min-h-full">
             {messages?.length ? (
               messages.map((message, index) => {
-                const currentDate = new Date(Number(message.timestamp) * 1000);
-                const previousMessage = messages[index - 1];
+                const currentDate = new Date(Number(message.timestamp) * 1000)
+                const previousMessage = messages[index - 1]
                 const previousDate = previousMessage
                   ? new Date(Number(previousMessage.timestamp) * 1000)
-                  : null;
+                  : null
 
-                const showDate = !previousDate ||
-                  format(currentDate, "yyyy-MM-dd") !== format(previousDate, "yyyy-MM-dd");
+                const showDate =
+                  !previousDate ||
+                  format(currentDate, "yyyy-MM-dd") !==
+                    format(previousDate, "yyyy-MM-dd")
 
                 return (
-                  <ChatMessage
+                  <GroupMessage
                     key={index}
                     message={message}
                     address={address}
                     showDate={showDate}
                   />
-                );
+                )
               })
             ) : (
               <div className="flex items-center justify-center h-full">
-                <Badge variant="secondary" className="font-normal border px-3 py-1.5">
-                  No messages yet</Badge>
+                <Badge
+                  variant="secondary"
+                  className="font-normal border px-3 py-1.5"
+                >
+                  No Threads yet
+                </Badge>
               </div>
             )}
           </div>
@@ -193,10 +303,7 @@ const Group: FC<PageProps> = ({ id }) => {
                 render={({ field }) => (
                   <FormItem className="flex-1">
                     <FormControl>
-                      <Input
-                        placeholder="Type a message..."
-                        {...field}
-                      />
+                      <Input placeholder="Type a message..." {...field} />
                     </FormControl>
                   </FormItem>
                 )}
@@ -216,4 +323,3 @@ const Group: FC<PageProps> = ({ id }) => {
 }
 
 export default Group
-
